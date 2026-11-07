@@ -18,3 +18,11 @@ write_api = client.write_api(write_options=SYNCHRONOUS)
 def write_points(points):
     """Write a list of influxdb Point objects to the bucket."""
     write_api.write(bucket=BUCKET, record=points)
+    
+
+def influx_is_up():
+    """Return True if InfluxDB answers a ping."""
+    try:
+        return bool(client.ping())
+    except Exception:
+        return False

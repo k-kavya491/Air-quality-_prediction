@@ -1,22 +1,25 @@
 import { useEffect, useState } from "react";
 import { getHealth } from "./services/api";
+import Header from "./components/Header";
+import Sidebar from "./components/Sidebar";
+import Dashboard from "./pages/Dashboard";
 
 function App() {
-  const [status, setStatus] = useState("Checking backend...");
+  const [status, setStatus] = useState("checking...");
 
   useEffect(() => {
     getHealth()
-      .then((res) => setStatus(`Connected (${res.data.status})`))
-      .catch(() => setStatus("Backend not reachable"));
+      .then((res) => setStatus(`connected (${res.data.status})`))
+      .catch(() => setStatus("not reachable"));
   }, []);
 
   return (
-    <div style={{ padding: 24, fontFamily: "sans-serif" }}>
-      <h1>AirSense</h1>
-      <p>AI-Powered Air Quality Prediction and Smart Mobility</p>
-      <p>
-        Backend status: <strong>{status}</strong>
-      </p>
+    <div className="app">
+      <Header status={status} />
+      <Sidebar />
+      <main className="main">
+        <Dashboard />
+      </main>
     </div>
   );
 }

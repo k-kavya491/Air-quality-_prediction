@@ -1,9 +1,9 @@
 const links = [
   { href: "#overview", icon: "🏠", label: "Dashboard" },
-  { href: "#location", icon: "📍", label: "Current Location" },
-  { href: "#air-quality", icon: "💨", label: "Air Quality" },
-  { href: "#weather", icon: "🌤️", label: "Weather" },
-  { href: "#analytics", icon: "📊", label: "Analytics" },
+  { href: "#stations", icon: "📡", label: "Monitor Stations" },
+  { href: "#categories", icon: "🎨", label: "AQI Categories" },
+  { href: "#predictions", icon: "🔮", label: "Predictions" },
+  { href: "#location", icon: "📍", label: "My Location" },
 ];
 
 export default function Sidebar() {

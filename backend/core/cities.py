@@ -44,3 +44,4 @@ CITIES = {
 }
 
 DEFAULT_CITY = "delhi"
+TRACKED_CITIES = ["visakhapatnam", "delhi"]

@@ -15,6 +15,7 @@ class Settings:
     WAQI_TOKEN = os.getenv("WAQI_TOKEN")
     OWM_KEY = os.getenv("OWM_KEY")
     OPENAQ_KEY = os.getenv("OPENAQ_KEY")
+    TOMTOM_API_KEY = os.getenv("TOMTOM_API_KEY")
     GOOGLE_MAPS_KEY = os.getenv("GOOGLE_MAPS_KEY")
 
     FRONTEND_ORIGINS = os.getenv(

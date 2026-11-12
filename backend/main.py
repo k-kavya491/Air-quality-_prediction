@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import db.models  # noqa: F401  (registers the tables)
 from api.air_quality import router as air_quality_router
 from api.dashboard import router as dashboard_router
+from api.environment import router as environmental_router
 from api.health import router as health_router
 from api.location import router as location_router
 from api.users import router as users_router
@@ -19,7 +20,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="AirSense API", version="0.3.0", lifespan=lifespan)
+app = FastAPI(title="AirSense API", version="0.4.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,6 +35,7 @@ app.include_router(users_router, prefix="/api")
 app.include_router(location_router, prefix="/api")
 app.include_router(air_quality_router, prefix="/api")
 app.include_router(dashboard_router, prefix="/api")
+app.include_router(environmental_router, prefix="/api")
 
 
 @app.get("/")

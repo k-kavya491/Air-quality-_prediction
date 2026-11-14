@@ -1,4 +1,11 @@
-export const CATEGORIES = [
+
+export interface AQICategory {
+  name: string;
+  color: string;
+  range: string;
+}
+
+export const CATEGORIES: AQICategory[] = [
   { name: "Good", color: "#22c55e", range: "0–50" },
   { name: "Moderate", color: "#eab308", range: "51–100" },
   { name: "Unhealthy for Sensitive Groups", color: "#f97316", range: "101–150" },
@@ -7,12 +14,12 @@ export const CATEGORIES = [
   { name: "Hazardous", color: "#be123c", range: "301+" },
 ];
 
-export function colorFor(categoryName) {
+export function colorFor(categoryName: string): string {
   const found = CATEGORIES.find((c) => c.name === categoryName);
   return found ? found.color : "#64748b";
 }
 
-export function categoryFor(aqi) {
+export function categoryFor(aqi: number): string {
   if (aqi <= 50) return "Good";
   if (aqi <= 100) return "Moderate";
   if (aqi <= 150) return "Unhealthy for Sensitive Groups";

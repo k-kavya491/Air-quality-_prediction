@@ -1,7 +1,14 @@
+
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    field_validator,
+)
 
 
 class HealthProfileIn(BaseModel):
@@ -56,3 +63,38 @@ class UserOut(BaseModel):
     email: str
     created_at: datetime
     profile: HealthProfileOut
+
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class HealthProfileUpdate(HealthProfileIn):
+    pass
+
+
+class UserNameUpdate(BaseModel):
+    name: str = Field(min_length=2, max_length=100)
+
+    @field_validator("name")
+    @classmethod
+    def clean_name(cls, v):
+        v = v.strip()
+        if len(v) < 2:
+            raise ValueError("Name must have at least 2 characters")
+        return v
+
+
+class PasswordChange(BaseModel):
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("new_password")
+    @classmethod
+    def check_new_password(cls, v):
+        if not any(c.isalpha() for c in v) or not any(c.isdigit() for c in v):
+            raise ValueError(
+                "New password must contain at least one letter and one number"
+            )
+        return v

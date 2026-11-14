@@ -1,3 +1,4 @@
+
 import { useCallback, useState } from "react";
 import { sendLocation } from "../services/api";
 
@@ -17,7 +18,29 @@ const MESSAGES = {
     "Your location was found, but it could not be sent to the server. Check that the backend is running.",
 };
 
-function validCoords(lat, lon) {
+type ErrorType = keyof typeof MESSAGES;
+
+interface LocationData {
+  latitude: number;
+  longitude: number;
+  accuracy_m: number;
+  captured_at: string;
+}
+
+interface LocationError {
+  type: ErrorType;
+  message: string;
+}
+
+type LocationStatus = "idle" | "requesting" | "success" | "error";
+
+interface GeolocationState {
+  status: LocationStatus;
+  location: LocationData | null;
+  error: LocationError | null;
+}
+
+function validCoords(lat: number, lon: number): boolean {
   return (
     Number.isFinite(lat) &&
     Number.isFinite(lon) &&
@@ -28,14 +51,19 @@ function validCoords(lat, lon) {
 }
 
 export default function useGeolocation() {
-  const [state, setState] = useState({ status: "idle", location: null, error: null });
+  const [state, setState] = useState<GeolocationState>({
+    status: "idle",
+    location: null,
+    error: null,
+  });
 
-  const fail = (type, location = null) =>
+  const fail = (type: ErrorType, location: LocationData | null = null) => {
     setState({
       status: "error",
       location,
       error: { type, message: MESSAGES[type] },
     });
+  };
 
   const requestLocation = useCallback(() => {
     if (!window.isSecureContext) return fail("insecure");
@@ -46,14 +74,16 @@ export default function useGeolocation() {
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude, accuracy } = pos.coords;
+
         if (!validCoords(latitude, longitude)) return fail("invalid");
 
-        const local = {
+        const local: LocationData = {
           latitude,
           longitude,
           accuracy_m: accuracy,
           captured_at: new Date(pos.timestamp).toISOString(),
         };
+
         try {
           const res = await sendLocation({
             latitude,
@@ -61,7 +91,12 @@ export default function useGeolocation() {
             accuracy_m: accuracy,
             source: "browser",
           });
-          setState({ status: "success", location: res.data, error: null });
+
+          setState({
+            status: "success",
+            location: res.data as LocationData,
+            error: null,
+          });
         } catch {
           fail("server", local);
         }

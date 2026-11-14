@@ -1,7 +1,21 @@
+
 import { CATEGORIES } from "../utils/aqi";
 
-export default function CategoryBreakdown({ breakdown }) {
-  const counts = Object.fromEntries(breakdown.map((b) => [b.category, b.count]));
+interface BreakdownItem {
+  category: string;
+  count: number;
+}
+
+interface CategoryBreakdownProps {
+  breakdown: BreakdownItem[];
+}
+
+export default function CategoryBreakdown({
+  breakdown,
+}: CategoryBreakdownProps) {
+  const counts = Object.fromEntries(
+    breakdown.map((b) => [b.category, b.count])
+  );
 
   return (
     <div>

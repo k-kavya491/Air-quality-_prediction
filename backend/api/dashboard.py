@@ -10,7 +10,15 @@ router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
 @router.get("/cities")
 def list_cities():
-    return [{"key": k, "label": v["label"]} for k, v in CITIES.items()]
+    return [
+        {
+            "key": key,
+            "label": city["label"],
+            "latitude": city["center"][0],
+            "longitude": city["center"][1],
+        }
+        for key, city in CITIES.items()
+    ]
 
 
 @router.get("/overview", response_model=DashboardOverview)

@@ -1,8 +1,12 @@
-from services.environmental_cleaner import clean_environmental_data
+from services.environment_cleaning import clean_environmental_data
 
 
 def test_cleaner_keeps_valid_values_and_removes_invalid_values():
     payload = {
+        "location": {
+            "latitude": 17.6868,
+            "longitude": 83.2183,
+        },
         "weather": {
             "temperature_c": 28.5,
             "humidity_percent": 150,
@@ -21,6 +25,14 @@ def test_cleaner_keeps_valid_values_and_removes_invalid_values():
 
 
 def test_cleaner_does_not_mutate_original_payload():
-    payload = {"weather": {"humidity_percent": 150}}
+    payload = {
+        "location": {
+            "latitude": 17.6868,
+            "longitude": 83.2183,
+        },
+        "weather": {"humidity_percent": 150},
+    }
+
     clean_environmental_data(payload)
+
     assert payload["weather"]["humidity_percent"] == 150

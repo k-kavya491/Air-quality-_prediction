@@ -1,36 +1,49 @@
-# Air-quality-_prediction
 # AirSense: AI-Powered Air Quality Prediction and Smart Mobility
 
-A full-stack web application that predicts localized Air Quality Index (AQI) values and gives route-based health advisories. It combines live location, AQI data, weather and traffic data to warn users when their travel route passes through high-pollution zones.
+A full-stack application for monitoring localized Air Quality Index (AQI), weather and traffic conditions. AirSense combines environmental data with location information to support future pollution-aware travel recommendations and health advisories.
 
-## Tech stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
+| Frontend | React, TypeScript, Vite |
+| HTTP Client | Axios |
 | Backend | Python, FastAPI |
-| Frontend | React (Vite), Axios, Leaflet |
-| Time-series database | InfluxDB |
-| User database | PostgreSQL |
-| Data sources | WAQI, OpenAQ, OpenWeatherMap |
-| Tools | Docker, Git |
+| Time-series Database | InfluxDB 2.7 |
+| User Database | PostgreSQL 16 |
+| Air Quality Data | WAQI, OpenAQ |
+| Weather Data | OpenWeatherMap |
+| Traffic Data | TomTom |
+| Containerization | Docker, Docker Compose |
+| Version Control | Git, GitHub |
+| API Testing | Postman |
 
-## Project structure
+## Project Structure
 
-```
+```text
 airsense/
 ├── backend/
-│   ├── api/            API routes (health, users, location)
-│   ├── db/             database clients and models
-│   ├── ingestion/      AQI, weather and traffic fetchers
-│   ├── main.py         FastAPI entry point
-│   ├── requirements.txt
-│   └── .env            API keys (not committed)
+│   ├── api/
+│   ├── core/
+│   ├── db/
+│   ├── ingestion/
+│   ├── schemas/
+│   ├── services/
+│   ├── tests/
+│   ├── main.py
+│   └── requirements.txt
 ├── frontend/
 │   └── src/
-│       ├── components/ reusable UI pieces
-│       ├── pages/      app pages
-│       └── services/   API calls (api.js)
-├── docker-compose.yml  InfluxDB and PostgreSQL
+│       ├── components/
+│       ├── hooks/
+│       ├── pages/
+│       ├── services/
+│       └── utils/
+├── .postman/
+├── docs/
+├── docker-compose.yml
+├── .env.example
+├── .gitignore
 └── README.md
 ```
 
@@ -38,48 +51,81 @@ airsense/
 
 - Git
 - Python 3.10 or newer
-- Node.js (LTS)
-- Docker Desktop (engine must be running)
+- Node.js (LTS) and npm
+- Docker Desktop
+- VS Code (recommended)
 
-## Setup and startup
+## Setup and Startup
 
-### 1. Start the databases
+### 1. Start Docker databases
 
 From the project root:
 
-```
+```powershell
 docker compose up -d
 ```
 
-- InfluxDB: http://localhost:8086
-- PostgreSQL: port 5432
+The root `.env` file must contain the Docker Compose configuration variables:
 
-### 2. Configure environment variables
+```dotenv
+INFLUXDB_INIT_USERNAME=your_username
+INFLUXDB_INIT_PASSWORD=your_password
+INFLUXDB_INIT_ORG=airsense
+INFLUXDB_INIT_BUCKET=aqi_readings
+INFLUXDB_INIT_ADMIN_TOKEN=your_admin_token
 
-Create `backend/.env` with your own keys:
-
+POSTGRES_USER=your_username
+POSTGRES_PASSWORD=your_password
+POSTGRES_DB=airsense_db
 ```
+
+These are example variable names. Use the credentials configured for your own database containers.
+
+Check the containers:
+
+```powershell
+docker compose ps
+```
+
+Services:
+- InfluxDB: http://localhost:8086
+- PostgreSQL: localhost:5432
+
+### 2. Configure backend environment variables
+
+Create `backend/.env` with your own API keys and database connection settings:
+
+```dotenv
 WAQI_TOKEN=your_waqi_token
 OWM_KEY=your_openweathermap_key
 OPENAQ_KEY=your_openaq_key
+TOMTOM_API_KEY=your_tomtom_api_key
+
 INFLUX_URL=http://localhost:8086
-INFLUX_TOKEN=my-super-token
+INFLUX_TOKEN=your_influx_token
 INFLUX_ORG=airsense
 INFLUX_BUCKET=aqi_readings
-POSTGRES_URL=postgresql://airsense:airsense123@localhost:5432/airsense_db
+
+POSTGRES_URL=your_postgresql_connection_url
+
+FRONTEND_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
 ```
 
-Create `frontend/.env`:
+Use credentials matching your local database configuration. Do not share or commit environment files.
 
-```
+### 3. Configure frontend environment variables
+
+Create `frontend/.env` if needed:
+
+```dotenv
 VITE_API_URL=http://localhost:8000/api
 ```
 
-Never commit these files. The development passwords and token above must be changed before any deployment.
+### 4. Run the backend
 
-### 3. Run the backend
+Open a terminal:
 
-```
+```powershell
 cd backend
 python -m venv venv
 venv\Scripts\activate
@@ -87,67 +133,196 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
+Backend:
 - API: http://localhost:8000
-- Interactive API docs: http://localhost:8000/docs
+- Interactive API documentation: http://localhost:8000/docs
 
-### 4. Run the frontend
+### 5. Run the frontend
 
-In a second terminal:
+Open a second terminal:
 
-```
+```powershell
 cd frontend
 npm install
 npm run dev
 ```
 
-App: http://localhost:5173
+Frontend: http://localhost:5173
 
-## Health check
+## API Health Check
 
-`GET /api/health` returns:
+The backend health endpoint is:
 
-```
-{"status": "ok", "service": "airsense-backend", "time": "..."}
-```
-
-The frontend home page calls this endpoint and shows "Backend status: Connected (ok)" when both servers are running and CORS is configured correctly.
-
-## Data ingestion
-
-Run the AQI fetcher manually from the `backend` folder with the virtual environment active:
-
-```
-python -m ingestion.aqi_fetcher
+```http
+GET /api/health
 ```
 
-Readings are stored in the `aqi_readings` bucket in InfluxDB. View them at http://localhost:8086 under Data Explorer.
+Test it using:
 
-## Data sources and attribution
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/api/health
+```
 
-- Air quality data: World Air Quality Index project (WAQI) and OpenAQ
-- Weather data: OpenWeatherMap
+## Environmental Data Integration
 
-## Development configuration notes
+The backend integrates the following data sources:
 
-- CORS allows the frontend origin `http://localhost:5173` (set in `backend/main.py`).
-- Python files and folders use `snake_case`. React components use `PascalCase`.
-- Commands run in a terminal. Code goes in files.
+- **WAQI:** Air Quality Index information.
+- **OpenAQ:** Pollutant measurements such as PM2.5, PM10, NO2, O3 and CO, where available.
+- **OpenWeatherMap:** Temperature, humidity, pressure, wind and weather conditions.
+- **TomTom:** Traffic speed and travel-time information.
 
-## Status
+The combined environmental endpoint is:
 
-Weeks 1-2 (in progress):
+```http
+GET /api/environmental/current?lat=17.6868&lon=83.2183
+```
 
-- [x] Development environment and repository
-- [x] Backend and frontend skeletons
-- [x] Frontend to backend connection (health check)
-- [x] InfluxDB and PostgreSQL running in Docker
-- [ ] WAQI and OpenAQ data fetchers
-- [ ] Weather and traffic fetchers
-- [ ] Scheduler for automatic data collection
-- [ ] Location consent flow
-- [ ] User registration and health profiles
+It retrieves environmental information for the requested coordinates, processes the available data, and attempts to store historical readings in InfluxDB.
 
-## Known limitations
+## Data Storage
 
-- Project is at an early stage. Prediction, route advisory and notifications come in later weeks.
-- Free API tiers have rate limits. Check each provider's current terms before commercial use.
+- InfluxDB stores historical environmental readings.
+- PostgreSQL is configured for relational application data.
+- Docker Compose manages both database services.
+
+InfluxDB Data Explorer: http://localhost:8086
+
+## Development Notes
+
+- Python files and folders use `snake_case`.
+- React components use `PascalCase`.
+- Frontend source files currently use TypeScript (`.ts` and `.tsx`).
+- Keep API keys and credentials in environment files.
+- Do not commit `.env` files.
+- Use the API documentation at `/docs` to inspect and test backend endpoints.
+
+## API Endpoints
+
+The AirSense backend provides the following FastAPI endpoints.
+
+| Category | Endpoint | Purpose |
+|---|---|---|
+| Health | `/api/health` | Backend health check |
+| Health | `/api/health/db` | Database health check |
+| Users | `/api/users/register` | User registration |
+| Users | `/api/users/login` | User login |
+| Users | `/api/users/{user_id}` | User details and updates |
+| Users | `/api/users/{user_id}/profile` | Health sensitivity and notification preferences |
+| Users | `/api/users/{user_id}/password` | Password updates |
+| Location | `/api/location` | Submit location information |
+| Location | `/api/location/{user_id}/latest` | Retrieve the latest saved location |
+| Air Quality | `/api/air-quality/current` | Current AQI and pollutant measurements |
+| Dashboard | `/api/dashboard/cities` | Supported city information |
+| Dashboard | `/api/dashboard/overview` | Dashboard overview data |
+| Environmental | `/api/environmental/current` | Combined air quality, weather, and traffic information |
+
+Interactive API documentation: `http://localhost:8000/docs`
+
+## Testing and Verification
+
+### Backend Testing
+
+Run automated tests from the backend directory:
+
+```powershell
+python -m pytest tests -v
+```
+
+Latest verified result: **17 tests passed**, with one deprecation warning.
+
+### Frontend Testing
+
+Run the frontend production build:
+
+```powershell
+npm run build
+```
+
+The frontend production build completed successfully.
+
+### Integration Testing
+
+The following functionality has been verified:
+
+- User profile updates and password changes
+- AQI and pollutant display
+- Weather and traffic information
+- City selection and dashboard updates
+- Browser geolocation and interactive pollution map
+- Combined environmental API response
+- Availability of air quality, weather, and traffic data
+- Invalid latitude and longitude validation
+- Historical environmental records in InfluxDB
+- Frontend-to-backend communication
+
+## Development Status
+
+### Day 1 — Project Setup
+
+- [x] Development environment configured
+- [x] Git repository initialized
+- [x] React frontend and FastAPI backend initialized
+- [x] Frontend/backend communication established
+- [x] Initial project documentation created
+
+### Day 2 — Database and User Management
+
+- [x] PostgreSQL and InfluxDB configured
+- [x] Database connection settings configured
+- [x] User registration and login implemented
+- [x] User profile management implemented
+- [x] Health sensitivity settings implemented
+- [x] Initial dashboard developed
+
+### Day 3 — Location and Air Quality Integration
+
+- [x] Browser geolocation integration
+- [x] Location permission and error handling
+- [x] Location API integration
+- [x] WAQI and OpenAQ integration
+- [x] Pollutant data processing
+- [x] Current air quality API
+- [x] Frontend AQI and pollutant display
+
+### Day 4 — Environmental Data Integration
+
+- [x] OpenWeatherMap weather integration
+- [x] TomTom traffic integration
+- [x] Environmental data cleaning and aggregation
+- [x] Combined environmental API
+- [x] Historical environmental data storage
+- [x] Automated backend tests
+- [x] Integration testing for available environmental sources
+
+### Day 5 — Dashboard and Integration
+
+- [x] Environmental dashboard
+- [x] AQI and pollutant display
+- [x] Interactive pollution map
+- [x] Frontend/backend API integration
+- [x] Application error handling implemented
+- [x] Database records verified
+- [x] Dashboard end-to-end testing passed
+- [x] API endpoints verified
+- [x] Technical documentation updated
+
+Milestone demonstration and final submission remain pending.
+
+## Known Limitations
+
+- The machine-learning AQI forecasting model has not yet been implemented.
+- The dashboard displays a forecasting-pending message instead of unverified predictions.
+- Pollution-aware route recommendations are planned for future development.
+- Health advisories and automated notifications require further development or verification.
+- External APIs may experience rate limits, network failures, or unavailable measurements.
+- Additional provider failure scenarios and automatic collection scheduling require verification.
+- Environmental data availability varies by location and provider.
+
+## Milestone 1 Summary
+
+AirSense is a full-stack environmental monitoring application developed using React, TypeScript, FastAPI, PostgreSQL, and InfluxDB.
+
+The application integrates air quality, weather, traffic, and location information into an environmental dashboard. It supports user management, pollutant visualization, historical environmental data storage, and an interactive pollution map.
+
+The core Day 1–5 implementation and integration tests have been completed. Final demonstration and submission remain.
